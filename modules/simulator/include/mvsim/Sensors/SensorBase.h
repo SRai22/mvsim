@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <mrpt/core/WorkerThreadsPool.h>
 #include <mrpt/io/CFileGZOutputStream.h>
 #include <mrpt/obs/obs_frwds.h>
 #include <mrpt/opengl/opengl_frwds.h>
@@ -96,6 +97,10 @@ class SensorBase : public VisualObject, public Simulable
 
 	/// Assign a sensible default name/sensor label if none is provided:
 	void make_sure_we_have_a_name(const std::string& prefix);
+
+	mrpt::WorkerThreadsPool m_threadPoolSendoutObs{
+		1 /*numThreads*/, mrpt::WorkerThreadsPool::POLICY_FIFO,
+		"SensorBase::send_out"};
 };
 
 using TListSensors = std::vector<SensorBase::Ptr>;

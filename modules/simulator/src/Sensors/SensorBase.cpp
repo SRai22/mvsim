@@ -158,39 +158,47 @@ void SensorBase::reportNewObservation(
 {
 	if (!obs) return;
 
-	// Notify the world:
-	m_world->dispatchOnObservation(m_vehicle, obs);
+	auto fut = m_threadPoolSendoutObs.enqueue(
+		[this](
+			const std::shared_ptr<mrpt::obs::CObservation> o,
+			TSimulContext ctxt) {
+			// Notify the world:
+			ctxt.world->dispatchOnObservation(m_vehicle, o);
 
-	// Publish:
+		// Publish:
 #if defined(MVSIM_HAS_ZMQ) && defined(MVSIM_HAS_PROTOBUF)
-	if (!publishTopic_.empty())
-	{
-		mvsim_msgs::GenericObservation msg;
-		msg.set_unixtimestamp(mrpt::Clock::toDouble(obs->timestamp));
-		msg.set_sourceobjectid(m_vehicle.getName());
+			if (!publishTopic_.empty())
+			{
+				mvsim_msgs::GenericObservation msg;
+				msg.set_unixtimestamp(mrpt::Clock::toDouble(o->timestamp));
+				msg.set_sourceobjectid(m_vehicle.getName());
 
-		std::vector<uint8_t> serializedData;
-		mrpt::serialization::ObjectToOctetVector(obs.get(), serializedData);
+				std::vector<uint8_t> serializedData;
+				mrpt::serialization::ObjectToOctetVector(
+					o.get(), serializedData);
 
-		msg.set_mrptserializedobservation(
-			serializedData.data(), serializedData.size());
+				msg.set_mrptserializedobservation(
+					serializedData.data(), serializedData.size());
 
-		context.world->commsClient().publishTopic(publishTopic_, msg);
-	}
+				ctxt.world->commsClient().publishTopic(publishTopic_, msg);
+			}
 #endif
 
-	// Save to .rawlog:
-	if (!m_save_to_rawlog.empty())
-	{
-		if (!m_rawlog_io)
-		{
-			m_rawlog_io = std::make_shared<mrpt::io::CFileGZOutputStream>(
-				m_save_to_rawlog);
-		}
+			// Save to .rawlog:
+			if (!m_save_to_rawlog.empty())
+			{
+				if (!m_rawlog_io)
+				{
+					m_rawlog_io =
+						std::make_shared<mrpt::io::CFileGZOutputStream>(
+							m_save_to_rawlog);
+				}
 
-		auto arch = mrpt::serialization::archiveFrom(*m_rawlog_io);
-		arch << *obs;
-	}
+				auto arch = mrpt::serialization::archiveFrom(*m_rawlog_io);
+				arch << *o;
+			}
+		},
+		obs, context);
 }
 
 void SensorBase::registerOnServer(mvsim::Client& c)

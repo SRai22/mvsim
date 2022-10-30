@@ -464,6 +464,7 @@ void World::internal_GUI_thread()
 
 		MRPT_LOG_DEBUG("[World::internal_GUI_thread] Mainloop ended.");
 
+#if 0
 		// Make sure opengl resources are freed from this thread, not from the
 		// main one upon destruction of the last ref to shared_ptr's to opengl
 		// classes.
@@ -474,11 +475,14 @@ void World::internal_GUI_thread()
 		}
 		for (auto& obj : m_simulableObjects) obj.second->freeOpenGLResources();
 		VisualObject::FreeOpenGLResources();
+#endif
+		// Note: do not free opengl resources here, to allow simulation to keep
+		// running w/o an open GUI window.
 
 		// Now, destroy window:
 		m_gui.gui_win.reset();
 
-		nanogui::shutdown();
+		// nanogui::shutdown();
 	}
 	catch (const std::exception& e)
 	{
