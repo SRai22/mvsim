@@ -43,11 +43,6 @@ class SensorBase : public VisualObject, public Simulable
 
 	void registerOnServer(mvsim::Client& c) override;
 
-	virtual void simulateOn3DScene(	 //
-		[[maybe_unused]] mrpt::opengl::COpenGLScene& gl_scene)
-	{
-	}
-
 	// Get all sensors visuals API:
 	static std::shared_ptr<mrpt::opengl::CSetOfObjects>
 		GetAllSensorsOriginViz();

@@ -8,6 +8,7 @@
   +-------------------------------------------------------------------------+ */
 #include <mrpt/core/lock_helper.h>
 #include <mrpt/math/TTwist2D.h>
+#include <mrpt/opengl/CFBORender.h>
 #include <mrpt/system/filesystem.h>	 // filePathSeparatorsToNative()
 #include <mvsim/World.h>
 #include <mvsim/mvsim-msgs/GenericAnswer.pb.h>
@@ -29,6 +30,16 @@ using namespace std;
 World::World() : mrpt::system::COutputLogger("mvsim::World")
 {
 	this->clear_all();
+
+	{
+		// ==================================================================
+		//                         ** CRITICAL **
+		// Create dummy FBO Renderer to init GL as required by FBOs *before*
+		// nanogui initializes it. Otherwise, GL context errors will be
+		// raised by FBOs later on.
+		// ==================================================================
+		mrpt::opengl::CFBORender render(10, 10);
+	}
 }
 
 // Dtor.
@@ -170,27 +181,6 @@ void World::internal_one_timestep(double dt)
 		}
 		m_reset_collision_flags.clear();
 	}
-
-	// 4) Wait for 3D sensors (OpenGL raytrace) to get executed on its thread:
-	mrpt::system::CTimeLoggerEntry tle4(
-		m_timlogger, "timestep.4.wait_3D_sensors");
-	if (pending_running_sensors_on_3D_scene())
-	{
-		for (int i = 0; i < 1000 && pending_running_sensors_on_3D_scene(); i++)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		}
-		if (pending_running_sensors_on_3D_scene())
-		{
-#if 1
-			MRPT_LOG_WARN(
-				"Timeout waiting for async sensors to be simulated in opengl "
-				"thread.");
-#endif
-			m_timlogger.registerUserMeasure("timestep.timeout_3D_sensors", 1.0);
-		}
-	}
-	tle4.stop();
 
 	const double ts = m_timer_iteration.Tac();
 	m_timlogger.registerUserMeasure("timestep", ts);

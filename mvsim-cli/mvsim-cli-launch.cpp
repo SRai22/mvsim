@@ -36,8 +36,25 @@ struct TThreadParams
 		closingMtx.unlock();
 	}
 
+	void markGUIasOpen()
+	{
+		guiOpenMtx_.lock();
+		guiOpen_ = true;
+		guiOpenMtx_.unlock();
+	}
+
+	bool is_gui_open()
+	{
+		guiOpenMtx_.lock();
+		const bool b = guiOpen_;
+		guiOpenMtx_.unlock();
+		return b;
+	}
+
    private:
 	bool closing_ = false;
+	bool guiOpen_ = false;
+	std::mutex guiOpenMtx_;
 };
 
 static void mvsim_server_thread_update_GUI(TThreadParams& thread_params);
@@ -93,6 +110,13 @@ Available options:
 	thread_params.world = &world;
 	std::thread thGUI =
 		std::thread(&mvsim_server_thread_update_GUI, std::ref(thread_params));
+
+	// wait for the GUI to have rendered at least once, for FBO buffers not to
+	// lead to nanogui OpenGL errors:
+	while (!thread_params.is_gui_open())
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
 
 	// Run simulation:
 	mrpt::system::CTicTac tictac;
@@ -221,6 +245,8 @@ void mvsim_server_thread_update_GUI(TThreadParams& thread_params)
 		guiparams.msg_lines = msg2gui;
 
 		thread_params.world->update_GUI(&guiparams);
+
+		thread_params.markGUIasOpen();
 
 		// Send key-strokes to the main thread:
 		if (guiparams.keyevent.keycode != 0)

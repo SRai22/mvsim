@@ -215,15 +215,9 @@ void ElevationMap::simul_pre_timestep(const TSimulContext& context)
 				// Local frame
 				mrpt::tfest::TMatchingPair corr;
 
-#if MRPT_VERSION >= 0x240
 				corr.localIdx = iW;
 				corr.local = mrpt::math::TPoint3D(wheel.x, wheel.y, 0);
-#else
-				corr.other_idx = iW;
-				corr.other_x = wheel.x;
-				corr.other_y = wheel.y;
-				corr.other_z = 0;
-#endif
+
 				// Global frame
 				const mrpt::math::TPoint3D gPt =
 					cur_cpose.composePoint({wheel.x, wheel.y, 0.0});
@@ -234,15 +228,8 @@ void ElevationMap::simul_pre_timestep(const TSimulContext& context)
 					continue;  // vehicle is out of bounds!
 				}
 
-#if MRPT_VERSION >= 0x240
 				corr.globalIdx = iW;
 				corr.global = mrpt::math::TPoint3D(gPt.x, gPt.y, z);
-#else
-				corr.this_idx = iW;
-				corr.this_x = gPt.x;
-				corr.this_y = gPt.y;
-				corr.this_z = z;
-#endif
 
 				corrs_.push_back(corr);
 			}

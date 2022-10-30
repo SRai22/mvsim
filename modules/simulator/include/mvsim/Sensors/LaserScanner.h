@@ -35,13 +35,14 @@ class LaserScanner : public SensorBase
 	void poses_mutex_lock() override {}
 	void poses_mutex_unlock() override {}
 
-	void simulateOn3DScene(mrpt::opengl::COpenGLScene& gl_scene) override;
 	void freeOpenGLResources() override;
 
    protected:
 	virtual void internalGuiUpdate(
 		mrpt::opengl::COpenGLScene& viz, mrpt::opengl::COpenGLScene& physical,
 		bool childrenOnly) override;
+	void simulateOn3DScene(
+		mrpt::opengl::COpenGLScene& gl_scene, const TSimulContext& context);
 
 	// when not using the 3D raytrace mode.
 	void internal_simulate_lidar_2d_mode(const TSimulContext& context);
@@ -83,7 +84,6 @@ class LaserScanner : public SensorBase
 		m_gl_sensor_origin_corner;
 	mrpt::opengl::CSetOfObjects::Ptr m_gl_sensor_fov;
 
-	std::optional<TSimulContext> m_has_to_render;
 	std::shared_ptr<mrpt::opengl::CFBORender> m_fbo_renderer_depth;
 };
 }  // namespace mvsim

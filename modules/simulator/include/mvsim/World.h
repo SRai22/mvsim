@@ -159,36 +159,10 @@ class World : public mrpt::system::COutputLogger
 		m_gui_user_objects_viz;
 	std::mutex m_gui_user_objects_mtx;
 
-	void internalRunSensorsOn3DScene(
-		mrpt::opengl::COpenGLScene& physicalObjects);
-
 	void internalUpdate3DSceneObjects(
 		mrpt::opengl::COpenGLScene& viz, mrpt::opengl::COpenGLScene& physical);
 	void internal_GUI_thread();
 	void internal_process_pending_gui_user_tasks();
-
-	std::mutex m_pendingRunSensorsOn3DSceneMtx;
-	bool m_pendingRunSensorsOn3DScene = false;
-
-	void mark_as_pending_running_sensors_on_3D_scene()
-	{
-		m_pendingRunSensorsOn3DSceneMtx.lock();
-		m_pendingRunSensorsOn3DScene = true;
-		m_pendingRunSensorsOn3DSceneMtx.unlock();
-	}
-	void clear_pending_running_sensors_on_3D_scene()
-	{
-		m_pendingRunSensorsOn3DSceneMtx.lock();
-		m_pendingRunSensorsOn3DScene = false;
-		m_pendingRunSensorsOn3DSceneMtx.unlock();
-	}
-	bool pending_running_sensors_on_3D_scene()
-	{
-		m_pendingRunSensorsOn3DSceneMtx.lock();
-		bool ret = m_pendingRunSensorsOn3DScene;
-		m_pendingRunSensorsOn3DSceneMtx.unlock();
-		return ret;
-	}
 
 	std::string m_gui_msg_lines;
 	std::mutex m_gui_msg_lines_mtx;
@@ -315,6 +289,10 @@ class World : public mrpt::system::COutputLogger
 	mvsim::Client& commsClient() { return m_client; }
 	const mvsim::Client& commsClient() const { return m_client; }
 
+	mrpt::opengl::COpenGLScene& physical_objects()
+	{
+		return m_physical_objects;
+	}
 	auto& physical_objects_mtx() { return m_physical_objects_mtx; }
 
    private:

@@ -68,11 +68,10 @@ void HorizontalPlane::internalGuiUpdate(
 
 		m_gl_plane->setColor_u8(m_color);
 
-#if MRPT_VERSION >= 0x240
 		m_gl_plane->cullFaces(
 			mrpt::typemeta::TEnumType<mrpt::opengl::TCullFace>::name2value(
 				m_cull_faces));
-#endif
+
 		viz.insert(m_gl_plane);
 		physical.insert(m_gl_plane);
 	}
@@ -122,11 +121,9 @@ void HorizontalPlane::internalGuiUpdate(
 
 		m_gl_plane_text->assignImage(texture);
 
-#if MRPT_VERSION >= 0x240
 		m_gl_plane_text->cullFaces(
 			mrpt::typemeta::TEnumType<mrpt::opengl::TCullFace>::name2value(
 				m_cull_faces));
-#endif
 
 		viz.insert(m_gl_plane_text);
 		physical.insert(m_gl_plane_text);

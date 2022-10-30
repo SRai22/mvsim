@@ -9,14 +9,12 @@
 
 #include <mrpt/core/exceptions.h>
 #include <mrpt/core/lock_helper.h>
+#include <mrpt/system/thread_name.h>
 #include <mrpt/version.h>
 #include <mvsim/Comms/Client.h>
 #include <mvsim/Comms/common.h>
 #include <mvsim/Comms/ports.h>
 #include <mvsim/Comms/zmq_monitor.h>
-#if MRPT_VERSION >= 0x204
-#include <mrpt/system/thread_name.h>
-#endif
 
 #include <iostream>
 #include <mutex>
@@ -174,9 +172,7 @@ void Client::connect()
 
 	serviceInvokerThread_ =
 		std::thread(&Client::internalServiceServingThread, this);
-#if MRPT_VERSION >= 0x204
 	mrpt::system::thread_name("services_"s + nodeName_, serviceInvokerThread_);
-#endif
 
 	// Create listening socket for subscription updates:
 	zmq_->topicNotificationsSocket.emplace(zmq_->context, ZMQ_PAIR);
@@ -194,10 +190,8 @@ void Client::connect()
 
 	topicUpdatesThread_ =
 		std::thread(&Client::internalTopicUpdatesThread, this);
-#if MRPT_VERSION >= 0x204
 	mrpt::system::thread_name(
 		"topicUpdates_"s + nodeName_, topicUpdatesThread_);
-#endif
 
 #else
 	THROW_EXCEPTION(

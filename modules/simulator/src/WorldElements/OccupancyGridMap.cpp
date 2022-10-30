@@ -55,14 +55,10 @@ void OccupancyGridMap::doLoadConfigFrom(const rapidxml::xml_node<char>* root)
 	// ROS YAML map files:
 	if (sFileExt == "yaml")
 	{
-#if MRPT_VERSION >= 0x250
 		bool ok = m_grid.loadFromROSMapServerYAML(sFile);
 		ASSERTMSG_(
 			ok,
 			mrpt::format("Error loading ROS map file: '%s'", sFile.c_str()));
-#else
-		THROW_EXCEPTION("Loading ROS YAML map files requires MRPT>=2.5.0");
-#endif
 	}
 	else if (sFileExt == "gridmap")
 	{
@@ -124,11 +120,7 @@ void OccupancyGridMap::internalGuiUpdate(
 	// 1st call OR gridmap changed?
 	if (!m_gui_uptodate)
 	{
-#if MRPT_VERSION >= 0x240
 		m_grid.getVisualizationInto(*m_gl_grid);
-#else
-		m_grid.getAs3DObject(m_gl_grid);
-#endif
 		m_gui_uptodate = true;
 	}
 

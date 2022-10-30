@@ -134,36 +134,30 @@ bool VisualObject::parseVisual(const rapidxml::xml_node<char>* visual_node)
 				mrpt::opengl::CAssimpModel::LoadFlags::RealTimeMaxQuality |
 				mrpt::opengl::CAssimpModel::LoadFlags::FlipUVs;
 
-#if MRPT_VERSION >= 0x250
 			if (modelColor != mrpt::img::TColor::white())
 				loadFlags |=
 					mrpt::opengl::CAssimpModel::LoadFlags::IgnoreMaterialColor;
 
 			m->setColor_u8(modelColor);
-#endif
+
 			if (mrpt::get_env<bool>("MVSIM_LOAD_MODELS_VERBOSE", false))
 				loadFlags |= mrpt::opengl::CAssimpModel::LoadFlags::Verbose;
 
 			m->loadScene(localFileName, loadFlags);
 
-#if MRPT_VERSION >= 0x240
 			m->cullFaces(
 				mrpt::typemeta::TEnumType<mrpt::opengl::TCullFace>::name2value(
 					modelCull));
-#endif
 
 			return m;
 		}
 	}();
 
 	mrpt::math::TPoint3D bbmin, bbmax;
-#if MRPT_VERSION >= 0x218
 	const auto bb = glModel->getBoundingBox();
 	bbmin = bb.min;
 	bbmax = bb.max;
-#else
-	glModel->getBoundingBox(bbmin, bbmax);
-#endif
+
 	glGroup->insert(glModel);
 
 	glGroup->setScale(modelScale);

@@ -33,22 +33,14 @@ const std::map<std::string, cmd_t> cliCommands = {
 
 void setConsoleErrorColor()
 {
-#if MRPT_VERSION >= 0x233
 	mrpt::system::consoleColorAndStyle(
 		mrpt::system::ConsoleForegroundColor::RED);
-#else
-	mrpt::system::setConsoleColor(mrpt::system::CONCOL_RED);
-#endif
 }
 
 void setConsoleNormalColor()
 {
-#if MRPT_VERSION >= 0x233
 	mrpt::system::consoleColorAndStyle(
 		mrpt::system::ConsoleForegroundColor::DEFAULT);
-#else
-	mrpt::system::setConsoleColor(mrpt::system::CONCOL_NORMAL);
-#endif
 }
 
 int main(int argc, char** argv)

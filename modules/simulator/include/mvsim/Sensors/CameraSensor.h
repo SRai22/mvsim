@@ -36,14 +36,15 @@ class CameraSensor : public SensorBase
 	void poses_mutex_lock() override {}
 	void poses_mutex_unlock() override {}
 
-	void simulateOn3DScene(mrpt::opengl::COpenGLScene& gl_scene) override;
-
 	void freeOpenGLResources() override;
 
    protected:
 	virtual void internalGuiUpdate(
 		mrpt::opengl::COpenGLScene& viz, mrpt::opengl::COpenGLScene& physical,
 		bool childrenOnly) override;
+
+	void simulateOn3DScene(
+		mrpt::opengl::COpenGLScene& gl_scene, const TSimulContext& context);
 
 	// Store here all sensor intrinsic parameters. This obj will be copied as a
 	// "pattern" to fill it with actual scan data.
@@ -60,7 +61,6 @@ class CameraSensor : public SensorBase
 	 * internalGuiUpdate() from m_last_scan2gui */
 	bool m_gui_uptodate = false;
 	std::recursive_mutex m_gui_mtx;
-	std::optional<TSimulContext> m_has_to_render;
 
 	float m_rgb_clip_min = 1e-2, m_rgb_clip_max = 1e+4;
 	float m_ambient_light = 0.6f;

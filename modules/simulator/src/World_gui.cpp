@@ -16,15 +16,13 @@
 #include <mrpt/obs/CObservation3DRangeScan.h>
 #include <mrpt/obs/CObservationImage.h>
 #include <mrpt/opengl/COpenGLScene.h>
+#include <mrpt/system/thread_name.h>
 #include <mrpt/version.h>
 #include <mvsim/World.h>
 
 #include <rapidxml.hpp>
 
 #include "xml_utils.h"
-#if MRPT_VERSION >= 0x204
-#include <mrpt/system/thread_name.h>
-#endif
 
 using namespace mvsim;
 using namespace std;
@@ -46,11 +44,7 @@ void World::close_GUI() { m_gui.gui_win.reset(); }
 // Add top menu subwindow:
 void World::GUI::prepare_control_window()
 {
-#if MRPT_VERSION >= 0x211
 	nanogui::Window* w = gui_win->createManagedSubWindow("Control");
-#else
-	nanogui::Window* w = new nanogui::Window(gui_win.get(), "Control");
-#endif
 
 	// Place control UI at the top-left corner:
 	gui_win->getSubWindowsUI()->setPosition({1, 1});
@@ -114,22 +108,12 @@ void World::GUI::prepare_control_window()
 // Add Status window
 void World::GUI::prepare_status_window()
 {
-#if MRPT_VERSION >= 0x211
 	nanogui::Window* w = gui_win->createManagedSubWindow("Status");
-#else
-	nanogui::Window* w = new nanogui::Window(gui_win.get(), "Status");
-#endif
 
 	w->setPosition({5, 255});
 	w->setLayout(new nanogui::BoxLayout(
 		nanogui::Orientation::Vertical, nanogui::Alignment::Fill));
 	w->setFixedWidth(320);
-
-#if MRPT_VERSION < 0x211
-	w->buttonPanel()
-		->add<nanogui::Button>("", ENTYPO_ICON_CROSS)
-		->setCallback([w]() { w->setVisible(false); });
-#endif
 
 	lbCpuUsage = w->add<nanogui::Label>(" ");
 	lbStatuses.resize(12);
@@ -140,14 +124,8 @@ void World::GUI::prepare_status_window()
 // Add editor window
 void World::GUI::prepare_editor_window()
 {
-#if MRPT_VERSION >= 0x211
-#if MRPT_VERSION >= 0x231
 	const auto subwinIdx = gui_win->getSubwindowCount();
-#endif
 	nanogui::Window* w = gui_win->createManagedSubWindow("Editor");
-#else
-	nanogui::Window* w = new nanogui::Window(gui_win.get(), "Editor");
-#endif
 
 	const int pnWidth = 250, pnHeight = 200;
 
@@ -155,12 +133,6 @@ void World::GUI::prepare_editor_window()
 	w->setLayout(new nanogui::BoxLayout(
 		nanogui::Orientation::Vertical, nanogui::Alignment::Fill, 3, 3));
 	w->setFixedWidth(pnWidth);
-
-#if MRPT_VERSION < 0x211
-	w->buttonPanel()
-		->add<nanogui::Button>("", ENTYPO_ICON_CROSS)
-		->setCallback([w]() { w->setVisible(false); });
-#endif
 
 	w->add<nanogui::Label>("Selected object", "sans-bold");
 
@@ -345,17 +317,8 @@ void World::GUI::prepare_editor_window()
 
 	for (auto b : btns_selectedOps) b->setEnabled(false);
 
-		// Minimize subwindow:
-#if MRPT_VERSION >= 0x231
+	// Minimize subwindow:
 	gui_win->subwindowMinimize(subwinIdx);
-#else
-	if (auto btnMinimize =
-			dynamic_cast<nanogui::Button*>(w->buttonPanel()->children().at(0));
-		btnMinimize)
-	{
-		btnMinimize->callback()();	// "push" button
-	}
-#endif
 
 }  // end "editor" window
 
@@ -425,29 +388,22 @@ void World::internal_GUI_thread()
 		m_gui.gui_win->setVisible(true);
 
 		// Listen for keyboard events:
-#if MRPT_VERSION >= 0x232
-		m_gui.gui_win->addKeyboardCallback(
-#else
-		m_gui.gui_win->setKeyboardCallback(
-#endif
-			[&](int key, int /*scancode*/, int action, int modifiers) {
-				if (action != GLFW_PRESS && action != GLFW_REPEAT) return false;
+		m_gui.gui_win->addKeyboardCallback([&](int key, int /*scancode*/,
+											   int action, int modifiers) {
+			if (action != GLFW_PRESS && action != GLFW_REPEAT) return false;
 
-				auto lck = mrpt::lockHelper(m_lastKeyEvent_mtx);
+			auto lck = mrpt::lockHelper(m_lastKeyEvent_mtx);
 
-				m_lastKeyEvent.keycode = key;
-				m_lastKeyEvent.modifierShift =
-					(modifiers & GLFW_MOD_SHIFT) != 0;
-				m_lastKeyEvent.modifierCtrl =
-					(modifiers & GLFW_MOD_CONTROL) != 0;
-				m_lastKeyEvent.modifierSuper =
-					(modifiers & GLFW_MOD_SUPER) != 0;
-				m_lastKeyEvent.modifierAlt = (modifiers & GLFW_MOD_ALT) != 0;
+			m_lastKeyEvent.keycode = key;
+			m_lastKeyEvent.modifierShift = (modifiers & GLFW_MOD_SHIFT) != 0;
+			m_lastKeyEvent.modifierCtrl = (modifiers & GLFW_MOD_CONTROL) != 0;
+			m_lastKeyEvent.modifierSuper = (modifiers & GLFW_MOD_SUPER) != 0;
+			m_lastKeyEvent.modifierAlt = (modifiers & GLFW_MOD_ALT) != 0;
 
-				m_lastKeyEventValid = true;
+			m_lastKeyEventValid = true;
 
-				return false;
-			});
+			return false;
+		});
 
 		m_gui_thread_running = true;
 
@@ -460,12 +416,8 @@ void World::internal_GUI_thread()
 			ASSERT_(me.m_gui.gui_win->background_scene);
 
 			auto lckPhys = mrpt::lockHelper(me.physical_objects_mtx());
-
 			me.internalUpdate3DSceneObjects(
 				*me.m_gui.gui_win->background_scene, me.m_physical_objects);
-
-			me.internalRunSensorsOn3DScene(me.m_physical_objects);
-
 			lckPhys.unlock();
 
 			me.internal_process_pending_gui_user_tasks();
@@ -484,12 +436,7 @@ void World::internal_GUI_thread()
 			}
 		};
 
-#if MRPT_VERSION >= 0x232
-		m_gui.gui_win->addLoopCallback(
-#else
-		m_gui.gui_win->setLoopCallback(
-#endif
-			[=]() { lambdaLoopCallback(*this); });
+		m_gui.gui_win->addLoopCallback([=]() { lambdaLoopCallback(*this); });
 
 		// Register observation callback:
 		const auto lambdaOnObservation =
@@ -511,13 +458,9 @@ void World::internal_GUI_thread()
 			"[World::internal_GUI_thread] Using GUI FPS=%i (T=%i ms)",
 			m_gui_options.refresh_fps, refresh_ms);
 
-#if MRPT_VERSION >= 0x253
 		const int idleLoopTasks_ms = 10;
 
 		nanogui::mainloop(idleLoopTasks_ms, refresh_ms);
-#else
-		nanogui::mainloop(refresh_ms);
-#endif
 
 		MRPT_LOG_DEBUG("[World::internal_GUI_thread] Mainloop ended.");
 
@@ -578,7 +521,6 @@ void World::GUI::handle_mouse_operations()
 		// vp->getByClass<CDisk>(0)->setLocation(clickedPt);
 	}
 
-#if MRPT_VERSION >= 0x211
 	const auto screen = gui_win->screen();
 	const bool leftClick = screen->mouseState() == 0x01;
 
@@ -608,7 +550,6 @@ void World::GUI::handle_mouse_operations()
 			btnReplaceObject->setPushed(false);
 		}
 	}
-#endif
 
 	MRPT_END
 }
@@ -624,20 +565,6 @@ void World::internal_process_pending_gui_user_tasks()
 	m_gui_user_pending_tasks.clear();
 
 	m_gui_user_pending_tasks_mtx.unlock();
-}
-
-void World::internalRunSensorsOn3DScene(
-	mrpt::opengl::COpenGLScene& physicalObjects)
-{
-	auto tle = mrpt::system::CTimeLoggerEntry(
-		m_timlogger, "internalRunSensorsOn3DScene");
-
-	for (auto& v : m_vehicles)
-		for (auto& sensor : v.second->getSensors())
-			if (sensor) sensor->simulateOn3DScene(physicalObjects);
-
-	// clear the flag of pending 3D simulation required:
-	clear_pending_running_sensors_on_3D_scene();
 }
 
 void World::internalUpdate3DSceneObjects(
@@ -740,9 +667,7 @@ void World::update_GUI(TUpdateGUIParams* guiparams)
 			MRPT_LOG_DEBUG("[update_GUI] Launching GUI thread...");
 
 			m_gui_thread = std::thread(&World::internal_GUI_thread, this);
-#if MRPT_VERSION >= 0x204
 			mrpt::system::thread_name("guiThread", m_gui_thread);
-#endif
 			for (int timeout = 0; timeout < 300; timeout++)
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
