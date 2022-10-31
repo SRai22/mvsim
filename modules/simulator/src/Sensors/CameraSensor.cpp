@@ -181,7 +181,7 @@ void CameraSensor::simulateOn3DScene(
 	if (!m_fbo_renderer_rgb)
 		m_fbo_renderer_rgb = std::make_shared<mrpt::opengl::CFBORender>(
 			m_sensor_params.cameraParams.ncols,
-			m_sensor_params.cameraParams.nrows, true /* skip GLUT window */);
+			m_sensor_params.cameraParams.nrows);
 
 	auto viewport = world3DScene.getViewport();
 

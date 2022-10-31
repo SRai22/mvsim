@@ -238,8 +238,7 @@ void DepthCameraSensor::simulateOn3DScene(
 
 		m_fbo_renderer_rgb = std::make_shared<mrpt::opengl::CFBORender>(
 			m_sensor_params.cameraParamsIntensity.ncols,
-			m_sensor_params.cameraParamsIntensity.nrows,
-			true /* skip GLUT window */);
+			m_sensor_params.cameraParamsIntensity.nrows);
 	}
 
 	if (!m_fbo_renderer_depth && m_sense_depth)
@@ -249,12 +248,13 @@ void DepthCameraSensor::simulateOn3DScene(
 
 		m_fbo_renderer_depth = std::make_shared<mrpt::opengl::CFBORender>(
 			m_sensor_params.cameraParams.ncols,
-			m_sensor_params.cameraParams.nrows, true /* skip GLUT window */);
+			m_sensor_params.cameraParams.nrows);
 	}
 
 	auto viewport = world3DScene.getViewport();
 
-	auto& cam = viewport->getCamera();
+	auto& camDepth = m_fbo_renderer_depth->getCamera(world3DScene);
+	auto& camRGB = m_fbo_renderer_rgb->getCamera(world3DScene);
 
 	const auto fixedAxisConventionRot =
 		mrpt::poses::CPose3D(0, 0, 0, -90.0_deg, 0.0_deg, -90.0_deg);
@@ -262,8 +262,8 @@ void DepthCameraSensor::simulateOn3DScene(
 	// ----------------------------------------------------------
 	// RGB first with its camera intrinsics & clip distances
 	// ----------------------------------------------------------
-	cam.set6DOFMode(true);
-	cam.setProjectiveFromPinhole(curObs.cameraParamsIntensity);
+	camRGB.set6DOFMode(true);
+	camRGB.setProjectiveFromPinhole(curObs.cameraParamsIntensity);
 
 	// RGB camera pose:
 	//   vehicle (+) relativePoseOnVehicle (+) relativePoseIntensityWRTDepth
@@ -279,7 +279,7 @@ void DepthCameraSensor::simulateOn3DScene(
 	const auto rgbSensorPose =
 		vehiclePose + curObs.sensorPose + curObs.relativePoseIntensityWRTDepth;
 
-	cam.setPose(rgbSensorPose);
+	camRGB.setPose(rgbSensorPose);
 
 	if (m_fbo_renderer_rgb)
 	{
@@ -308,12 +308,12 @@ void DepthCameraSensor::simulateOn3DScene(
 		auto tle2 = mrpt::system::CTimeLoggerEntry(
 			m_world->getTimeLogger(), "sensor.RGBD.renderD");
 
-		cam.setProjectiveFromPinhole(curObs.cameraParams);
+		camDepth.setProjectiveFromPinhole(curObs.cameraParams);
 
 		// Camera pose: vehicle + relativePoseOnVehicle:
 		// Note: relativePoseOnVehicle should be (y,p,r)=(90deg,0,90deg) to make
 		// the camera to look forward:
-		cam.setPose(depthSensorPose);
+		camDepth.setPose(depthSensorPose);
 
 		// viewport->setCustomBackgroundColor({0.3f, 0.3f, 0.3f, 1.0f});
 		viewport->setViewportClipDistances(m_depth_clip_min, m_depth_clip_max);

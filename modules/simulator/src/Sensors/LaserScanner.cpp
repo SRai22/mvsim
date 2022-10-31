@@ -431,8 +431,8 @@ void LaserScanner::simulateOn3DScene(
 	camModel.fy(camModel.fx());
 
 	if (!m_fbo_renderer_depth)
-		m_fbo_renderer_depth = std::make_shared<mrpt::opengl::CFBORender>(
-			FBO_NCOLS, FBO_NROWS, true /* skip GLUT window */);
+		m_fbo_renderer_depth =
+			std::make_shared<mrpt::opengl::CFBORender>(FBO_NCOLS, FBO_NROWS);
 
 	auto viewport = world3DScene.getViewport();
 
