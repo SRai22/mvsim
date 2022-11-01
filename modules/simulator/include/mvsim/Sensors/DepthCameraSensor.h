@@ -79,8 +79,6 @@ class DepthCameraSensor : public SensorBase
 	float m_depth_clip_min = 0.1, m_depth_clip_max = 15.0;
 	float m_depth_resolution = 1e-3;
 
-	float m_ambient_light = 0.6f;
-
 	bool m_sense_depth = true;	//!< Simulate the DEPTH sensor part
 	bool m_sense_rgb = true;  //!< Simulate the RGB sensor part
 

@@ -347,7 +347,9 @@ void World::internal_GUI_thread()
 			m_physical_objects.insert(m_glUserObjsPhysical);
 
 			scene->getViewport()->lightParameters().ambient = {
-				0.5f, 0.5f, 0.5f, 1.0f};
+				m_gui_options.ambient_light_intensity,
+				m_gui_options.ambient_light_intensity,
+				m_gui_options.ambient_light_intensity, 1.0f};
 
 			// Create group for sensor viz:
 			{

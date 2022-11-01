@@ -154,8 +154,18 @@ void World::internal_one_timestep(double dt)
 		mrpt::system::CTimeLoggerEntry tle(
 			m_timlogger, "timestep.3.save_dynstate");
 
+		mrpt::system::CTimeLoggerEntry tle31(
+			m_timlogger, "timestep.3.save_dynstate.1.acqPhyObjs");
+
 		const auto lckPhys = mrpt::lockHelper(physical_objects_mtx());
+
+		tle31.stop();
+		mrpt::system::CTimeLoggerEntry tle32(
+			m_timlogger, "timestep.3.save_dynstate.2.acqObjsCopy");
+
 		const auto lckCopy = mrpt::lockHelper(m_copy_of_objects_dynstate_mtx);
+
+		tle32.stop();
 
 		for (auto& e : m_simulableObjects)
 		{

@@ -295,6 +295,44 @@ class World : public mrpt::system::COutputLogger
 	}
 	auto& physical_objects_mtx() { return m_physical_objects_mtx; }
 
+	// ------- GUI options -----
+	struct TGUI_Options
+	{
+		unsigned int win_w = 800, win_h = 600;
+		bool start_maximized = true;
+		int refresh_fps = 20;
+		bool ortho = false;
+		bool show_forces = false;
+		bool show_sensor_points = true;
+		double force_scale = 0.01;	//!< In meters/Newton
+		double camera_distance = 80.0;
+		double fov_deg = 60.0;
+		float ambient_light_intensity = 0.6f;
+		/** Name of the vehicle to follow (empty=none) */
+		std::string follow_vehicle;
+
+		const TParameterDefinitions params = {
+			{"win_w", {"%u", &win_w}},
+			{"win_h", {"%u", &win_h}},
+			{"ortho", {"%bool", &ortho}},
+			{"show_forces", {"%bool", &show_forces}},
+			{"show_sensor_points", {"%bool", &show_sensor_points}},
+			{"force_scale", {"%lf", &force_scale}},
+			{"fov_deg", {"%lf", &fov_deg}},
+			{"follow_vehicle", {"%s", &follow_vehicle}},
+			{"start_maximized", {"%bool", &start_maximized}},
+			{"refresh_fps", {"%i", &refresh_fps}},
+			{"ambient_light_intensity", {"%f", &ambient_light_intensity}},
+		};
+
+		TGUI_Options() = default;
+		void parse_from(const rapidxml::xml_node<char>& node);
+	};
+
+	/// Some of these options are only used the first time the GUI window is
+	/// created.
+	TGUI_Options m_gui_options;
+
    private:
 	friend class VehicleBase;
 	friend class Block;
@@ -338,41 +376,6 @@ class World : public mrpt::system::COutputLogger
 		mrpt::opengl::CSetOfObjects::Create();
 	mrpt::opengl::CSetOfObjects::Ptr m_glUserObjsViz =
 		mrpt::opengl::CSetOfObjects::Create();
-
-	// ------- GUI options -----
-	struct TGUI_Options
-	{
-		unsigned int win_w = 800, win_h = 600;
-		bool start_maximized = true;
-		int refresh_fps = 20;
-		bool ortho = false;
-		bool show_forces = false;
-		bool show_sensor_points = true;
-		double force_scale = 0.01;	//!< In meters/Newton
-		double camera_distance = 80.0;
-		double fov_deg = 60.0;
-		/** Name of the vehicle to follow (empty=none) */
-		std::string follow_vehicle;
-
-		const TParameterDefinitions params = {
-			{"win_w", {"%u", &win_w}},
-			{"win_h", {"%u", &win_h}},
-			{"ortho", {"%bool", &ortho}},
-			{"show_forces", {"%bool", &show_forces}},
-			{"show_sensor_points", {"%bool", &show_sensor_points}},
-			{"force_scale", {"%lf", &force_scale}},
-			{"fov_deg", {"%lf", &fov_deg}},
-			{"follow_vehicle", {"%s", &follow_vehicle}},
-			{"start_maximized", {"%bool", &start_maximized}},
-			{"refresh_fps", {"%i", &refresh_fps}},
-		};
-
-		TGUI_Options() = default;
-		void parse_from(const rapidxml::xml_node<char>& node);
-	};
-
-	TGUI_Options m_gui_options;	 //!< Some of these options are only used the
-								 //! first time the GUI window is created.
 
 	// -------- World contents ----------
 	/** Mutex protecting simulation objects from multi-thread access */

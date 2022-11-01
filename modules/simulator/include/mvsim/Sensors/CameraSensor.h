@@ -63,7 +63,6 @@ class CameraSensor : public SensorBase
 	std::recursive_mutex m_gui_mtx;
 
 	float m_rgb_clip_min = 1e-2, m_rgb_clip_max = 1e+4;
-	float m_ambient_light = 0.6f;
 
 	mrpt::opengl::CSetOfObjects::Ptr m_gl_sensor_origin,
 		m_gl_sensor_origin_corner;
