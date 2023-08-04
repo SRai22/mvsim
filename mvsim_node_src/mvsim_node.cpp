@@ -134,8 +134,8 @@ MVSimNode::MVSimNode(rclcpp::Node::SharedPtr& n)
 	publisher_history_len_ = n_->declare_parameter<int>(
 		"publisher_history_len", publisher_history_len_);
 
-	// n_->declare_parameter("use_sim_time"); // already declared error?
-	if (true == n_->get_parameter_or("use_sim_time", false))
+	bool use_sim_time_ = n_->declare_parameter<bool>("use_sim_time", false);
+	if (true == n_->get_parameter("use_sim_time", use_sim_time_))
 	{
 		THROW_EXCEPTION(
 			"At present, MVSIM can only work with use_sim_time=false");
